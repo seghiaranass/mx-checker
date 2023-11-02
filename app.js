@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
+const fs = require('fs').promises; // Use the promise-based functions
 
 const app = express();
 app.use(cors());
@@ -26,10 +27,22 @@ app.post('/upload',upload.single('file'),async (req,res,next) =>{
           }
 
           const fullPath = `uploads/${req.file.filename}`;
-          processStartPoint(fullPath).then(() => {
-            res.status(200).send(`File uploaded and processed successfully: ${req.file.filename}`);
-          }).catch(error => {
-            res.status(500).send(`An error occurred during file processing: ${error.message}`);
+          processStartPoint(fullPath, async (error) => {
+            // Delete the file after processing is done or if there's an error
+            try {
+              await fs.unlink(fullPath);
+              console.log(`Successfully deleted file: ${fullPath}`);
+              if (error) {
+                // If there was an error during processing, send a server error response
+                return res.status(500).send('An error occurred during file processing.');
+              } else {
+                // If everything went fine, send a success response
+                res.status(200).send('File uploaded and processed successfully.');
+              }
+            } catch (deleteError) {
+              console.error(`An error occurred while deleting the file: ${deleteError}`);
+              res.status(500).send('An error occurred during file deletion.');
+            }
           });
 
     }catch(err){
