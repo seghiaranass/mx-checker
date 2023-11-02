@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN npm install validator dns  mysql2 express multer
+RUN npm install validator dns  mysql2 express multer cors
 
 
 
